@@ -1,0 +1,9 @@
+Variable Name,Variable Description,Variable Type,Unit
+Variable_1,z-score,Numeric,
+Variable_2,Age,Numeric,Years
+Variable_3,Sex,Char,
+Variable_4,Education,Char,
+Variable_5,Height,Numeric,cm
+Variable_6,Income,Char,CAD
+Variable_7,Weight,Numeric,kg
+Variable_8,Enrollment Date,Date,

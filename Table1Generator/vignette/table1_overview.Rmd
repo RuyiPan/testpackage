@@ -1,0 +1,194 @@
+---
+title: "Overview of Automated Table 1 Generation"
+author: "Ruyi Pan, Siyue Yang, Jessica Gronsbell"
+date: "20/07/2021"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r include=FALSE}
+# Load table 1 functions.
+source("generate_table1.R")
+
+# Library to knit html tables.
+library(knitr)
+library(kableExtra)
+```
+
+This document uses a simulated data set to illustrate the functionality of the table 1 function.
+
+```{r}
+set.seed(92047)
+
+# Simulate example data.
+example_data <- simulate_table1_data()
+
+# Quick summary of the data.
+str(example_data)
+```
+
+### Default Table 1 with the example data set. 
+
+```{r}
+# The default table 1 summarizes across all the variables in the dataframe.
+# The displayed variable names correspond to the column names in the dataframe.
+tab1_basic <- generate_table1(patient_level_data = example_data)
+
+tab1_basic
+```
+
+```{r}
+tab1_basic %>% save_kable(file = "tab1_basic.png")
+```
+
+
+### Functionality 1: Change the number of significant digits.
+
+```{r}
+# The default number of significant digits for numeric value (as in example above) is 3.
+# The default number of significant digits for proportion (as in example above) is 2.
+tab1_sigdig <- generate_table1(
+  patient_level_data = example_data,
+  num_digits = 2,
+  pct_digits = 2
+)
+
+tab1_sigdig
+```
+
+```{r}
+tab1_sigdig %>% save_kable(file = "tab1_sigdig.png")
+```
+
+
+### Functionality 2: Add a stratifying variable. 
+
+```{r}
+tab1_strat <- generate_table1(
+  patient_level_data = example_data,
+  stratifying_var = "Variable_6"
+)
+
+tab1_strat
+```
+
+```{r}
+tab1_strat %>% save_kable(file = "tab1_strat.png")
+```
+
+### Functionality 3: Rename variables.
+
+```{r}
+# Create a list to rename desired variables.
+example_dictionary <- list(
+  Variable_1 = list(rename = "Z-score"),
+  Variable_3 = list(rename = "Smoking Status"),
+  Variable_6 = list(rename = "Neighborhood")
+)
+
+tab1_rename <- generate_table1(
+  patient_level_data = example_data,
+  var_dictionary = example_dictionary,
+  stratifying_var = "Variable_6"
+)
+
+tab1_rename
+# Note: You can also rename variables by renaming the column in the dataframe.
+```
+
+```{r}
+tab1_rename %>% save_kable(file = "tab1_rename.png")
+```
+
+### Functionality 4: Specify variable type.
+
+```{r}
+# Change type for Variable_5.
+# The default sets a variable as categorical if the number of unique values is
+# less than log(n) where n is the number of rows in the dataframe.
+example_dictionary <- list(
+  Variable_1 = list(rename = "Z-score"),
+  Variable_3 = list(rename = "Smoking Status", type = "categorical"),
+  Variable_2 = list(rename = "Age", type = "categorical")
+)
+
+tab1_type <- generate_table1(
+  patient_level_data = example_data,
+  var_dictionary = example_dictionary,
+  stratifying_var = "Variable_6"
+)
+
+tab1_type
+```
+
+```{r}
+tab1_type %>% save_kable(file = "tab1_type.png")
+```
+
+### Functionality 5: Specify variable units.
+
+```{r}
+# Create a list to rename desired variables, adding units for height.
+example_dictionary <- list(
+  Variable_1 = list(rename = "Z-score"),
+  Variable_3 = list(rename = "Smoking Status"),
+  Variable_5 = list(rename = "Height", unit = "cm")
+)
+
+tab1_units <- generate_table1(
+  patient_level_data = example_data,
+  var_dictionary = example_dictionary,
+  stratifying_var = "Variable_6"
+)
+
+tab1_units
+```
+
+```{r}
+tab1_units %>% save_kable(file = "tab1_units.png")
+```
+
+### Functionality 6: Specify table style.
+
+```{r}
+example_dictionary <- list(
+  Variable_1 = list(rename = "Z-score"),
+  Variable_3 = list(rename = "Smoking Status")
+)
+
+tab1_style <- generate_table1(
+  patient_level_data = example_data,
+  var_dictionary = example_dictionary,
+  stratifying_var = "Variable_6",
+  my_table_style = "Rtable1-zebra"
+)
+```
+
+```{r}
+tab1_style %>% save_kable(file = "tab1_style.png")
+```
+
+### Example: Using the above functionality with an existing data dictionary.
+
+```{r}
+my_full_dictionary <- read.csv("Example_Data_Dictionary.csv",
+  row.names = 1,
+  na.strings = c("", "NA")
+)
+
+# Subset the dictionary to variables in the given data set.
+my_dictionary <- my_full_dictionary[colnames(example_data), ]
+
+# Transform the dictionary into a list for use in the table 1 function.
+colnames(my_dictionary) <- c("rename", "type", "unit")
+
+# Function change dataframe dictionary to list dictionary.
+my_dictionary_list <- data_dictionary_2_list(my_dictionary)
+
+generate_table1(example_data, var_dictionary = my_dictionary_list)
+```
+
+### Additional directions.
+To get your table into word, knit a markdown file to HTML and copy the outputted table to the word document. 
